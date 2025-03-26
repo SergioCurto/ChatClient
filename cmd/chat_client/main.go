@@ -9,8 +9,7 @@ import (
 
 	"github.com/SergioCurto/ChatClient/config"
 	"github.com/SergioCurto/ChatClient/internal/aggregator"
-	"github.com/SergioCurto/ChatClient/internal/chatproviders/twitch"
-	"github.com/SergioCurto/ChatClient/internal/chatproviders/youtube"
+	"github.com/SergioCurto/ChatClient/internal/chatproviders"
 )
 
 func main() {
@@ -20,20 +19,27 @@ func main() {
 	cfg := config.GetConfig()
 
 	agg := aggregator.NewAggregator(cfg)
+	chatProviderFactory := chatproviders.NewConcreteChatProviderFactory()
 
 	// Create and add providers configured
 	if cfg.ConnectTwitch {
 		fmt.Println("Creating and enabling Twitch chat provider")
-		twitchProvider := twitch.NewTwitchProvider()
+		twitchProvider, err := chatProviderFactory.CreateProvider(chatproviders.Twitch)
+		if err != nil {
+			log.Fatal("Error creating Twitch provider: ", err)
+		}
 		agg.AddProvider(twitchProvider)
 	}
-	
+
 	if cfg.ConnectYoutube {
 		fmt.Println("Creating and enabling Youtube chat provider")
-		youtubeProvider := youtube.NewYoutubeProvider()
+		youtubeProvider, err := chatProviderFactory.CreateProvider(chatproviders.Youtube)
+		if err != nil {
+			log.Fatal("Error creating Youtube provider: ", err)
+		}
 		agg.AddProvider(youtubeProvider)
 	}
-	
+
 	if agg.GetProvidersCount() == 0 {
 		log.Fatal("No chat providers configured")
 	}
