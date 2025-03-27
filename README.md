@@ -4,6 +4,7 @@ ChatClient is a Go application that connects to multiple chat platforms (current
 
 ## Code structure
 
+```
 github.com/SergioCurto/ChatClient/
 ├── cmd/
 │   └── chat_client/          
@@ -28,6 +29,7 @@ github.com/SergioCurto/ChatClient/
 ├── go.mod              	    # Go module definition
 ├── go.sum						# Go module checksums
 └── README.md					# Project documentation
+```
 
 Chat providers implement the ChatProvider interface, which is used by the Aggregator. Messages are published by the providers and consumed by the aggregator using Go channels, resembling a simplified publish-subscribe pattern.
 
