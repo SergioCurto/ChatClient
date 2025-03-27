@@ -39,6 +39,13 @@ func (a *Aggregator) Start() error {
 	if a.stop != nil {
 		return errors.New("aggregator already started")
 	}
+
+	if (len(a.providers) == 0) || (len(a.consumers) == 0) {
+		return errors.New("no providers or consumers added")
+	}
+
+	a.messages = make(chan chatmodels.ChatMessage)
+
 	a.stop = make(chan struct{})
 
 	for _, provider := range a.providers {
@@ -66,26 +73,20 @@ func (a *Aggregator) Start() error {
 		defer a.wg.Done()
 		for msg := range a.messages {
 			for _, consumer := range a.consumers {
-				consumer.Consume(msg)
+				go consumer.Consume(msg)
 			}
 		}
 	}()
 
-	go a.wg.Wait()
-
 	return nil
-}
-
-func (a *Aggregator) GetMessages() <-chan chatmodels.ChatMessage {
-	return a.messages
 }
 
 func (a *Aggregator) Stop() {
 	if a.stop != nil {
 		close(a.stop)
+		a.stop = nil
 		close(a.messages) // Close the messages channel to evict the consumers
 		a.wg.Wait()
-		a.stop = nil
 	}
 }
 

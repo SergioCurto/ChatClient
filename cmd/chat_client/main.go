@@ -52,35 +52,20 @@ func main() {
 		agg.AddConsumer(consumer)
 	}
 	
-
-	if agg.GetProvidersCount() == 0 {
-		log.Fatal("No chat providers configured")
-	}
-
-	if agg.GetConsumersCount() == 0 {
-		log.Fatal("No chat consumers configured")
-	}
-
 	// Start the aggregator
-	agg.Start()
+	err := agg.Start()
+
+	if err != nil {
+		log.Fatal("Error starting aggregator: ", err)
+	}
 
 	// Handle CTRL+C to gracefully shutdown
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	done := make(chan bool, 1)
-
-	go func() {
-		for msg := range agg.GetMessages() {
-			fmt.Printf("[%s] %s\n", msg.Provider, msg.Content)
-		}
-		done <- true
-	}()
-
 	<-sigs
 	fmt.Println("Shutting down...")
 	agg.Stop()
-	<-done
 
 	fmt.Println("Chat aggregation ended.")
 }
