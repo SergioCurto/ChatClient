@@ -6,12 +6,14 @@ import (
 	"sync"
 
 	"github.com/SergioCurto/ChatClient/config"
+	"github.com/SergioCurto/ChatClient/internal/chatconsumers"
 	"github.com/SergioCurto/ChatClient/internal/chatmodels"
 	"github.com/SergioCurto/ChatClient/internal/chatproviders"
 )
 
 type Aggregator struct {
 	providers []chatproviders.ChatProvider
+	consumers []chatconsumers.ChatConsumer
 	messages  chan chatmodels.ChatMessage
 	cfg       *config.Config
 	stop      chan struct{}
@@ -27,6 +29,10 @@ func NewAggregator(cfg *config.Config) *Aggregator {
 
 func (a *Aggregator) AddProvider(provider chatproviders.ChatProvider) {
 	a.providers = append(a.providers, provider)
+}
+
+func (a *Aggregator) AddConsumer(consumer chatconsumers.ChatConsumer) {
+	a.consumers = append(a.consumers, consumer)
 }
 
 func (a *Aggregator) Start() error {
@@ -55,10 +61,17 @@ func (a *Aggregator) Start() error {
 		}(provider)
 	}
 
+	a.wg.Add(1)
 	go func() {
-		a.wg.Wait()
-		close(a.messages)
+		defer a.wg.Done()
+		for msg := range a.messages {
+			for _, consumer := range a.consumers {
+				consumer.Consume(msg)
+			}
+		}
 	}()
+
+	go a.wg.Wait()
 
 	return nil
 }
@@ -70,6 +83,7 @@ func (a *Aggregator) GetMessages() <-chan chatmodels.ChatMessage {
 func (a *Aggregator) Stop() {
 	if a.stop != nil {
 		close(a.stop)
+		close(a.messages) // Close the messages channel to evict the consumers
 		a.wg.Wait()
 		a.stop = nil
 	}
@@ -77,4 +91,8 @@ func (a *Aggregator) Stop() {
 
 func (a *Aggregator) GetProvidersCount() int {
 	return len(a.providers)
+}
+
+func (a *Aggregator) GetConsumersCount() int {
+	return len(a.consumers)
 }

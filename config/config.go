@@ -16,6 +16,7 @@ type Config struct {
 	YoutubeApiKey        string
 	YoutubeChannelId     string
 	YoutubeQueriesPerDay int
+	ChatOutput			 bool
 }
 
 var config *Config
@@ -34,6 +35,8 @@ func GetConfig() *Config {
 		connectYoutube, _ := strconv.ParseBool(os.Getenv("CONNECT_YOUTUBE"))
 		youtubeQueriesPerDay, err := strconv.Atoi(os.Getenv("YOUTUBE_QUERIES_PER_DAY"))
 
+		outputChat, _ := strconv.ParseBool(os.Getenv("OUTPUT_CHAT"))
+
 		if err != nil && connectYoutube {
 			log.Println("No number of Youtube queries per day found, using default limit", defaultYoutubeQueriesPerDay)
 			youtubeQueriesPerDay = defaultYoutubeQueriesPerDay
@@ -46,6 +49,7 @@ func GetConfig() *Config {
 			YoutubeApiKey:        os.Getenv("YOUTUBE_API_KEY"),
 			YoutubeChannelId:     os.Getenv("YOUTUBE_CHANNEL_ID"),
 			YoutubeQueriesPerDay: youtubeQueriesPerDay,
+			ChatOutput:			  outputChat,
 		}
 	})
 	return config

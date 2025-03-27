@@ -7,39 +7,54 @@ ChatClient is a Go application that connects to multiple chat platforms (current
 ```
 github.com/SergioCurto/ChatClient/
 ├── cmd/
-│   └── chat_client/          
-│       └── main.go				## Contains the main function
-├── internal/					# Internal application code (not meant to be imported by external projects)
-│   ├── aggregator/				## Core logic for aggregating chat messages
-│   │   ├── aggregator.go		## Defines a basic chat aggregator
-│   │   └── aggregator_test.go 
-│   ├── chatproviders/      
-│   │   ├── chatprovider.go		## Interface for chat providers
-│   │   ├── chatprovider_test.go 
-│   │   ├── twitch/          
-│   │   │   └── twitch.go
-│   │   └── youtube/         
-│   │       └── youtube.go
-│   ├── chatmodels/				# Defines the data structures for the chat messages
-│   │    └── chatmessage.go		## structure for chat message
-│   └── config/					# Configuration management and environment file loading
-│        └── config.go
-├── .env						# Environment variables
-├── .env.example				# Example of environment variables (use this to create your .env file)
-├── go.mod              	    # Go module definition
-├── go.sum						# Go module checksums
-└── README.md					# Project documentation
+│   └── chat_client/              # Executable application
+│       └── main.go               
+├── internal/                     # Internal application code (not meant to be imported by external projects)
+│   ├── aggregator/               # Core logic for aggregating chat messages
+│   │   ├── aggregator.go         
+│   │   └── aggregator_test.go    
+│   ├── chatconsumers/            
+│   │   ├── console/              # Console chat consumer
+│   │   │   └── console.go        
+│   │   ├── chatconsumer.go       # Interface for chat consumers
+│   │   └── chatconsumer_test.go  
+│   ├── chatproviders/            
+│   │   ├── twitch/               # Twitch chat provider
+│   │   │   └── twitch.go         
+│   │   ├── youtube/              # Youtube chat provider
+│   │   │   └── youtube.go        
+│   │   ├── chatprovider.go       # Interface for chat providers
+│   │   └── chatprovider_test.go  
+│   ├── chatmodels/               
+│   │   └── chatmessage.go        # Structure for chat message
+│   └── config/                   
+│       └── config.go             # Configuration management and environment file loading
+├── .env                          # Environment variables (do not commit this file to version control)
+├── .env.example                  # Example of environment variables (use this to create your .env file)
+├── go.mod                        # Go module definition
+├── go.sum                        # Go module checksums
+└── README.md                     # Project documentation
 ```
 
-Chat providers implement the ChatProvider interface, which is used by the Aggregator. Messages are published by the providers and consumed by the aggregator using Go channels, resembling a simplified publish-subscribe pattern.
+Chat providers implement the `ChatProvider` interface and chat consumers implement the `ChatConsumer` interface, these are then used by the `Aggregator`. 
 
-ChatProviders are created using a factory pattern, allowing for easy extension with new providers. The factory pattern also allows for the creation of multiple instances of the same provider with different configurations if needed.
+Messages are published by the providers and forwarded to the consumers by `Aggregator` using Go channels, with a simplified publish-subscribe pattern.
 
-Go routines are used to concurrently collect messages from different chat providers. Wait groups are used to manage the lifecycle of the providers, ensuring that all active providers are gracefully disconnected before the application terminates.
+ChatProviders and ChatConsumers are created using a factory pattern, allowing for easy extension with new providers and consumers. The factory pattern also allows for the creation of multiple instances of the same provider or consumer with different configurations if needed.
+
+Go routines are used to concurrently collect messages from different chat providers and to process messages by the consumers. Wait groups are used to manage the lifecycle of the providers and consumers, ensuring that all active providers are gracefully disconnected and all consumers have finished processing before the application terminates.
+
 
 ## Configuration
 
-The application is configured using environment variables. Create a `.env` file in the project root directory (based on `.env.example`). At least one chat provider needs to be enabled for the application to work.
+The application is configured using environment variables. Create a `.env` file in the project root directory (based on `.env.example`). At least one chat provider and one chat consumer needs to be enabled for the application to work.
+
+Chat consumers:
+- Console output: `OUTPUT_CHAT=true`
+
+Chat providers:
+- Twitch: `CONNECT_TWITCH=true`
+- Youtube: `CONNECT_YOUTUBE=true`
 
 **Required if `CONNECT_TWITCH=true`:**
 

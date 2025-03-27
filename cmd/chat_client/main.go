@@ -9,6 +9,7 @@ import (
 
 	"github.com/SergioCurto/ChatClient/config"
 	"github.com/SergioCurto/ChatClient/internal/aggregator"
+	"github.com/SergioCurto/ChatClient/internal/chatconsumers"
 	"github.com/SergioCurto/ChatClient/internal/chatproviders"
 )
 
@@ -40,8 +41,24 @@ func main() {
 		agg.AddProvider(youtubeProvider)
 	}
 
+	// Create and add consumers configured
+	if cfg.ChatOutput {
+		fmt.Println("Creating and enabling Console consumer")
+		consumerFactory := chatconsumers.NewConcreteChatConsumerFactory()
+		consumer, err := consumerFactory.CreateConsumer(chatconsumers.Console)
+		if err != nil {
+			log.Fatal("Error creating Console consumer: ", err)
+		}
+		agg.AddConsumer(consumer)
+	}
+	
+
 	if agg.GetProvidersCount() == 0 {
 		log.Fatal("No chat providers configured")
+	}
+
+	if agg.GetConsumersCount() == 0 {
+		log.Fatal("No chat consumers configured")
 	}
 
 	// Start the aggregator
