@@ -95,7 +95,7 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 	}
 
 	for _, message := range i.messages {
-		_, err = fmt.Fprintf(w, `<div class="message">[%s] %s</div>`, message.Provider, message.Content)
+		_, err = fmt.Fprintf(w, `<div class="message">[%s] %s: %s</div>`, message.Provider, message.AuthorName, message.Content)
 		if err != nil {
 			return err
 		}
@@ -110,7 +110,7 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 					const message = JSON.parse(event.data);
 					const messageElement = document.createElement('div');
 					messageElement.classList.add('message');
-					messageElement.textContent = `+"`"+`[${message.Provider}] ${message.Content}`+"`"+`;
+					messageElement.textContent = `+"`"+`[${message.Provider}] ${message.AuthorName}: ${message.Content}`+"`"+`;
 					chatbox.appendChild(messageElement);
 					chatbox.scrollTop = chatbox.scrollHeight;
 				};

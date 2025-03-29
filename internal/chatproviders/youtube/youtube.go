@@ -111,7 +111,7 @@ func (y *YoutubeProvider) Listen(messages chan<- chatmodels.ChatMessage) error {
 	go func(y *YoutubeProvider) {
 		for {
 			// Get the live chat messages.
-			call := y.service.LiveChatMessages.List(y.liveChatId, []string{"snippet"}).MaxResults(2000)
+			call := y.service.LiveChatMessages.List(y.liveChatId, []string{"snippet", "authorDetails"}).MaxResults(2000)
 			if y.nextPage != "" {
 				call = call.PageToken(y.nextPage)
 			}
@@ -136,9 +136,11 @@ func (y *YoutubeProvider) Listen(messages chan<- chatmodels.ChatMessage) error {
 
 			// Process the messages.
 			for _, item := range response.Items {
+
 				messages <- chatmodels.ChatMessage{
-					Provider: y.GetName(),
-					Content:  item.Snippet.DisplayMessage,
+					Provider:   y.GetName(),
+					Content:    item.Snippet.DisplayMessage,
+					AuthorName: item.AuthorDetails.DisplayName,
 				}
 			}
 			// Wait for the next poll interval.

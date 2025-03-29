@@ -55,9 +55,10 @@ func (t *TwitchProvider) Listen(messages chan<- chatmodels.ChatMessage) error {
 	// Handle incoming messages
 	t.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		t.messagesChan <- chatmodels.ChatMessage{
-			Provider:  t.GetName(),
-			Timestamp: message.Time,
-			Content:   fmt.Sprintf("%s: %s", message.User.DisplayName, message.Message),
+			Provider:   t.GetName(),
+			Timestamp:  message.Time,
+			Content:    message.Message,
+			AuthorName: message.User.DisplayName,
 		}
 	})
 

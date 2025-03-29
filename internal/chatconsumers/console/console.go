@@ -24,7 +24,7 @@ func (c *ConsoleConsumer) Start(cfg *config.Config) error {
 
 // Consume logs the message to the console.
 func (c *ConsoleConsumer) Consume(message chatmodels.ChatMessage) {
-	fmt.Printf("[%s] %s\n", message.Provider, message.Content)
+	fmt.Printf("[%s] %s: %s\n", message.Provider, message.AuthorName, message.Content)
 }
 
 // GetName returns the name of the consumer.
