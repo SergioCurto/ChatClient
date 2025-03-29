@@ -84,7 +84,30 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 				}
 				.message {
 					margin-bottom: 5px;
+					width: 100%;
 				}
+				.messagecontainer {
+					display: flex;
+					flex-direction: row;
+				}
+				.provider {
+					min-width: 70px !important;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+				}
+				.user {
+					min-width: 100px !important;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+					text-align: right;
+					padding-right: 10px;
+				}
+				.messagecontents {
+					flex-grow: 1;
+				}
+				
 			</style>
 		</head>
 		<body>
@@ -95,7 +118,7 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 	}
 
 	for _, message := range i.messages {
-		_, err = fmt.Fprintf(w, `<div class="message">[%s] %s: %s</div>`, message.Provider, message.AuthorName, message.Content)
+		_, err = fmt.Fprintf(w, `<div class="message"><div class="messagecontainer"><div class="provider">%s</div><div class="user">%s:</div><div class="messagecontents">%s</div></div></div>`, message.Provider, message.AuthorName, message.Content)
 		if err != nil {
 			return err
 		}
@@ -110,7 +133,27 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 					const message = JSON.parse(event.data);
 					const messageElement = document.createElement('div');
 					messageElement.classList.add('message');
-					messageElement.textContent = `+"`"+`[${message.Provider}] ${message.AuthorName}: ${message.Content}`+"`"+`;
+
+					const container = document.createElement('div');
+					container.classList.add('messagecontainer');
+					messageElement.appendChild(container);
+
+					const provider = document.createElement('div');
+					provider.classList.add('provider');
+					provider.textContent = message.Provider;
+
+					const user = document.createElement('div');
+					user.classList.add('user');
+					user.textContent = message.AuthorName+":";
+
+					const messageContents = document.createElement('div');
+					messageContents.classList.add('messagecontents');
+					messageContents.textContent = message.Content;
+					
+					container.appendChild(provider);
+					container.appendChild(user);
+					container.appendChild(messageContents);
+					
 					chatbox.appendChild(messageElement);
 					chatbox.scrollTop = chatbox.scrollHeight;
 				};
