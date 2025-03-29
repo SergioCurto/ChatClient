@@ -20,9 +20,10 @@ func main() {
 	cfg := config.GetConfig()
 
 	agg := aggregator.NewAggregator(cfg)
-	chatProviderFactory := chatproviders.NewConcreteChatProviderFactory()
 
 	// Create and add providers configured
+	chatProviderFactory := chatproviders.NewConcreteChatProviderFactory()
+
 	if cfg.ConnectTwitch {
 		fmt.Println("Creating and enabling Twitch chat provider")
 		twitchProvider, err := chatProviderFactory.CreateProvider(chatproviders.Twitch)
@@ -42,16 +43,28 @@ func main() {
 	}
 
 	// Create and add consumers configured
+	consumerFactory := chatconsumers.NewConcreteChatConsumerFactory()
+
 	if cfg.ChatOutput {
 		fmt.Println("Creating and enabling Console consumer")
-		consumerFactory := chatconsumers.NewConcreteChatConsumerFactory()
+
 		consumer, err := consumerFactory.CreateConsumer(chatconsumers.Console)
 		if err != nil {
 			log.Fatal("Error creating Console consumer: ", err)
 		}
 		agg.AddConsumer(consumer)
 	}
-	
+
+	if cfg.WebpageOutput {
+		fmt.Println("Creating and enabling SimplePage consumer")
+
+		consumer, err := consumerFactory.CreateConsumer(chatconsumers.SimplePage)
+		if err != nil {
+			log.Fatal("Error creating SimplePage consumer: ", err)
+		}
+		agg.AddConsumer(consumer)
+	}
+
 	// Start the aggregator
 	err := agg.Start()
 

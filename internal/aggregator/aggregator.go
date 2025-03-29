@@ -71,6 +71,19 @@ func (a *Aggregator) Start() error {
 	a.wg.Add(1)
 	go func() {
 		defer a.wg.Done()
+
+		fmt.Println("Starting consumers...")
+		for _, consumer := range a.consumers {
+			go func() {
+				err := consumer.Start(a.cfg)
+				if err != nil {
+					fmt.Println("Ignoring consumer with error during start:", consumer.GetName(), err)
+				}
+			}()
+		}
+
+		fmt.Println("Consumers started")
+
 		for msg := range a.messages {
 			for _, consumer := range a.consumers {
 				go consumer.Consume(msg)

@@ -15,6 +15,12 @@ func TestConcreteChatConsumerFactory_CreateConsumer(t *testing.T) {
 	assert.NotNil(t, consumer)
 	assert.Equal(t, "Console", consumer.GetName())
 
+	// Test creating a SimplePage consumer
+	consumer, err = factory.CreateConsumer(SimplePage)
+	assert.NoError(t, err)
+	assert.NotNil(t, consumer)
+	assert.Equal(t, "SimplePage", consumer.GetName())
+	
 	// Test creating an unknown consumer
 	consumer, err = factory.CreateConsumer(ChatConsumerType(999)) // Invalid consumer type
 	assert.Error(t, err)

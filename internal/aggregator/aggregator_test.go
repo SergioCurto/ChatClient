@@ -12,15 +12,15 @@ import (
 
 // MockChatProvider for testing
 type MockChatProvider struct {
-	Name         string
-	ConnectErr   error
+	Name          string
+	ConnectErr    error
 	DisconnectErr error
-	ListenErr    error
-	Messages     []chatmodels.ChatMessage
-	Connected    bool
-	Disconnected bool
-	ListenCalled bool
-	stopListen   chan struct{}
+	ListenErr     error
+	Messages      []chatmodels.ChatMessage
+	Connected     bool
+	Disconnected  bool
+	ListenCalled  bool
+	stopListen    chan struct{}
 }
 
 func (m *MockChatProvider) Connect(cfx *config.Config) error {
@@ -41,9 +41,11 @@ func (m *MockChatProvider) Listen(messages chan<- chatmodels.ChatMessage) error 
 		for _, msg := range m.Messages {
 			select {
 			case messages <- msg:
-			case <-m.stopListen: return
+			case <-m.stopListen:
+				return
 			}
-		}}()
+		}
+	}()
 	return m.ListenErr
 }
 
@@ -53,9 +55,15 @@ func (m *MockChatProvider) GetName() string {
 
 // MockChatConsumer for testing
 type MockChatConsumer struct {
-	Name          string
-	ConsumedCount int
+	Name             string
+	ConsumedCount    int
 	ConsumedMessages []chatmodels.ChatMessage
+	StartCalled      bool
+}
+
+func (m *MockChatConsumer) Start(cfg *config.Config) error {
+	m.StartCalled = true
+	return nil
 }
 
 func (m *MockChatConsumer) Consume(message chatmodels.ChatMessage) {
@@ -138,6 +146,7 @@ func TestAggregator_Start_Success(t *testing.T) {
 	assert.True(t, provider.Connected)
 	assert.True(t, provider.ListenCalled)
 	assert.Equal(t, 1, consumer.ConsumedCount)
+	assert.True(t, consumer.StartCalled)
 	assert.Equal(t, "Test Message", consumer.ConsumedMessages[0].Content)
 	agg.Stop()
 	assert.True(t, provider.Disconnected)
@@ -187,6 +196,8 @@ func TestAggregator_MultipleProvidersAndConsumers(t *testing.T) {
 	assert.True(t, provider1.ListenCalled)
 	assert.True(t, provider2.ListenCalled)
 
+	assert.True(t, consumer1.StartCalled)
+	assert.True(t, consumer2.StartCalled)
 	assert.Equal(t, 2, consumer1.ConsumedCount)
 	assert.Equal(t, 2, consumer2.ConsumedCount)
 

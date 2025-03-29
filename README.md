@@ -16,6 +16,8 @@ github.com/SergioCurto/ChatClient/
 │   ├── chatconsumers/            
 │   │   ├── console/              # Console chat consumer
 │   │   │   └── console.go        
+│   │   ├── simplepage/           # Simple page chat consumer
+│   │   │   └── simplepage.go     
 │   │   ├── chatconsumer.go       # Interface for chat consumers
 │   │   └── chatconsumer_test.go  
 │   ├── chatproviders/            
@@ -51,6 +53,7 @@ The application is configured using environment variables. Create a `.env` file 
 
 Chat consumers:
 - Console output: `OUTPUT_CHAT=true`
+- Simple page output: `OUTPUT_SIMPLEPAGE=true` (default page http://localhost:8080)
 
 Chat providers:
 - Twitch: `CONNECT_TWITCH=true`
