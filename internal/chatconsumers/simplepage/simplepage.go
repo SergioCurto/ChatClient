@@ -95,9 +95,10 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 					overflow: hidden;
 					text-overflow: ellipsis;
 					white-space: nowrap;
+					text-align: right;
 				}
 				.user {
-					min-width: 100px !important;
+					min-width: 125px !important;
 					overflow: hidden;
 					text-overflow: ellipsis;
 					white-space: nowrap;
