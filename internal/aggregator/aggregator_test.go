@@ -13,6 +13,7 @@ import (
 // MockChatProvider for testing
 type MockChatProvider struct {
 	Name          string
+	ShortName     string
 	ConnectErr    error
 	DisconnectErr error
 	ListenErr     error
@@ -53,6 +54,10 @@ func (m *MockChatProvider) GetName() string {
 	return m.Name
 }
 
+func (m *MockChatProvider) GetShortName() string {
+	return m.ShortName
+}
+
 // MockChatConsumer for testing
 type MockChatConsumer struct {
 	Name             string
@@ -88,7 +93,7 @@ func TestNewAggregator(t *testing.T) {
 
 func TestAggregator_AddProvider(t *testing.T) {
 	agg := NewAggregator(&config.Config{})
-	provider := &MockChatProvider{Name: "TestProvider"}
+	provider := &MockChatProvider{Name: "TestProvider", ShortName: "TP"}
 	agg.AddProvider(provider)
 	assert.Len(t, agg.providers, 1)
 	assert.Equal(t, provider, agg.providers[0])
@@ -136,7 +141,7 @@ func TestAggregator_Start_ProviderListenError(t *testing.T) {
 
 func TestAggregator_Start_Success(t *testing.T) {
 	agg := NewAggregator(&config.Config{})
-	provider := &MockChatProvider{Name: "TestProvider", Messages: []chatmodels.ChatMessage{{Provider: "TestProvider", Content: "Test Message"}}}
+	provider := &MockChatProvider{Name: "TestProvider", ShortName: "TP", Messages: []chatmodels.ChatMessage{{Provider: "TestProvider", ProviderShortName: "TP", Content: "Test Message"}}}
 	consumer := &MockChatConsumer{Name: "TestConsumer"}
 	agg.AddProvider(provider)
 	agg.AddConsumer(consumer)
@@ -161,8 +166,8 @@ func TestAggregator_Stop_NotStarted(t *testing.T) {
 
 func TestAggregator_GetProvidersCount(t *testing.T) {
 	agg := NewAggregator(&config.Config{})
-	agg.AddProvider(&MockChatProvider{Name: "TestProvider1"})
-	agg.AddProvider(&MockChatProvider{Name: "TestProvider2"})
+	agg.AddProvider(&MockChatProvider{Name: "TestProvider1", ShortName: "TP1"})
+	agg.AddProvider(&MockChatProvider{Name: "TestProvider2", ShortName: "TP2"})
 	assert.Equal(t, 2, agg.GetProvidersCount())
 }
 
@@ -176,8 +181,8 @@ func TestAggregator_GetConsumersCount(t *testing.T) {
 func TestAggregator_MultipleProvidersAndConsumers(t *testing.T) {
 	agg := NewAggregator(&config.Config{})
 
-	provider1 := &MockChatProvider{Name: "Provider1", Messages: []chatmodels.ChatMessage{{Provider: "Provider1", Content: "Message from Provider1"}}}
-	provider2 := &MockChatProvider{Name: "Provider2", Messages: []chatmodels.ChatMessage{{Provider: "Provider2", Content: "Message from Provider2"}}}
+	provider1 := &MockChatProvider{Name: "Provider1", Messages: []chatmodels.ChatMessage{{Provider: "Provider1", ProviderShortName: "P1", Content: "Message from Provider1"}}}
+	provider2 := &MockChatProvider{Name: "Provider2", Messages: []chatmodels.ChatMessage{{Provider: "Provider2", ProviderShortName: "P2", Content: "Message from Provider2"}}}
 	consumer1 := &MockChatConsumer{Name: "Consumer1"}
 	consumer2 := &MockChatConsumer{Name: "Consumer2"}
 
@@ -201,10 +206,10 @@ func TestAggregator_MultipleProvidersAndConsumers(t *testing.T) {
 	assert.Equal(t, 2, consumer1.ConsumedCount)
 	assert.Equal(t, 2, consumer2.ConsumedCount)
 
-	assert.Contains(t, consumer1.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider1", Content: "Message from Provider1"})
-	assert.Contains(t, consumer1.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider2", Content: "Message from Provider2"})
-	assert.Contains(t, consumer2.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider1", Content: "Message from Provider1"})
-	assert.Contains(t, consumer2.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider2", Content: "Message from Provider2"})
+	assert.Contains(t, consumer1.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider1", ProviderShortName: "P1", Content: "Message from Provider1"})
+	assert.Contains(t, consumer1.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider2", ProviderShortName: "P2", Content: "Message from Provider2"})
+	assert.Contains(t, consumer2.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider1", ProviderShortName: "P1", Content: "Message from Provider1"})
+	assert.Contains(t, consumer2.ConsumedMessages, chatmodels.ChatMessage{Provider: "Provider2", ProviderShortName: "P2", Content: "Message from Provider2"})
 
 	agg.Stop()
 	time.Sleep(200 * time.Millisecond)

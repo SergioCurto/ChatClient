@@ -14,6 +14,7 @@ import (
 
 type YoutubeProvider struct {
 	Name          string
+	ShortName     string
 	apiKey        string
 	channelId     string
 	queriesPerDay int
@@ -26,7 +27,8 @@ type YoutubeProvider struct {
 func NewYoutubeProvider() *YoutubeProvider {
 
 	return &YoutubeProvider{
-		Name: "Youtube",
+		Name:      "Youtube",
+		ShortName: "Yt",
 	}
 }
 
@@ -138,9 +140,10 @@ func (y *YoutubeProvider) Listen(messages chan<- chatmodels.ChatMessage) error {
 			for _, item := range response.Items {
 
 				messages <- chatmodels.ChatMessage{
-					Provider:   y.GetName(),
-					Content:    item.Snippet.DisplayMessage,
-					AuthorName: item.AuthorDetails.DisplayName,
+					Provider:          y.GetName(),
+					ProviderShortName: y.GetShortName(),
+					Content:           item.Snippet.DisplayMessage,
+					AuthorName:        item.AuthorDetails.DisplayName,
 				}
 			}
 			// Wait for the next poll interval.
@@ -152,4 +155,8 @@ func (y *YoutubeProvider) Listen(messages chan<- chatmodels.ChatMessage) error {
 
 func (y *YoutubeProvider) GetName() string {
 	return y.Name
+}
+
+func (y *YoutubeProvider) GetShortName() string {
+	return y.ShortName
 }

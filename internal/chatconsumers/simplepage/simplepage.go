@@ -53,13 +53,14 @@ func (c *SimplePageConsumer) GetName() string {
 // index is a templ.Component that renders the HTML page.
 type index struct {
 	messages []chatmodels.ChatMessage
+	config   *config.Config
 }
 
 // Render implements the templ.Component interface.
 func (i index) Render(ctx context.Context, w io.Writer) error {
 	// Creating a chat box with dark terminal like colors
 	/// flex space used to manage the chat messages
-	_, err := fmt.Fprint(w, `<!DOCTYPE html>
+	fmt.Fprint(w, `<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -89,14 +90,32 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 				.messagecontainer {
 					display: flex;
 					flex-direction: row;
-				}
+				}`)
+
+	providerMinWidth := "70px"
+	if i.config.WebpageOuputShortenProvider {
+		providerMinWidth = "25px"
+	}
+
+	providerHide := ""
+	if i.config.WebpageOutputHideProvider {
+		providerHide = "display: none;"
+	}
+
+	fmt.Fprintf(w, `
 				.provider {
-					min-width: 70px !important;
+					min-width: %s !important;
 					overflow: hidden;
 					text-overflow: ellipsis;
 					white-space: nowrap;
 					text-align: right;
-				}
+					%s
+				}`,
+		providerMinWidth,
+		providerHide,
+	)
+
+	fmt.Fprint(w, `
 				.user {
 					min-width: 125px !important;
 					overflow: hidden;
@@ -114,21 +133,20 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 		<body>
 			<div id="chatbox">
 				<div id="fill"></div>`)
-	if err != nil {
-		return err
-	}
 
 	for _, message := range i.messages {
-		_, err = fmt.Fprintf(w, `<div class="message"><div class="messagecontainer"><div class="provider">%s</div><div class="user">%s:</div><div class="messagecontents">%s</div></div></div>`, message.Provider, message.AuthorName, message.Content)
-		if err != nil {
-			return err
+		providerName := message.Provider
+		if i.config.WebpageOuputShortenProvider {
+			providerName = message.ProviderShortName
 		}
+		fmt.Fprintf(w, `<div class="message"><div class="messagecontainer"><div class="provider">%s</div><div class="user">%s:</div><div class="messagecontents">%s</div></div></div>`, providerName, message.AuthorName, message.Content)
 	}
 
-	_, err = fmt.Fprint(w, `</div>
+	fmt.Fprintf(w, `</div>
 			<script>
 				const chatbox = document.getElementById('chatbox');
 				const ws = new WebSocket('ws://' + window.location.host + '/ws');
+				const useShortProvider = %v;
 
 				ws.onmessage = (event) => {
 					const message = JSON.parse(event.data);
@@ -141,7 +159,11 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 
 					const provider = document.createElement('div');
 					provider.classList.add('provider');
-					provider.textContent = message.Provider;
+					if (useShortProvider) {
+						provider.textContent = message.ProviderShortName;
+					} else {
+						provider.textContent = message.Provider;
+					}
 
 					const user = document.createElement('div');
 					user.classList.add('user');
@@ -160,13 +182,16 @@ func (i index) Render(ctx context.Context, w io.Writer) error {
 				};
 			</script>
 		</body>
-	</html>`)
-	return err
+	</html>`,
+		i.config.WebpageOuputShortenProvider,
+	)
+
+	return nil
 }
 
 func (c *SimplePageConsumer) Start(cfg *config.Config) error {
 	// Use the index component directly
-	http.Handle("/", templ.Handler(index{messages: c.getHistory()}))
+	http.Handle("/", templ.Handler(index{messages: c.getHistory(), config: cfg}))
 	http.HandleFunc("/ws", c.handleConnections)
 
 	go c.handleMessages()

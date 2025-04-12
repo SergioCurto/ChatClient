@@ -12,6 +12,7 @@ import (
 type TwitchProvider struct {
 	// Twitch specific variables
 	Name         string
+	ShortName    string
 	client       *twitch.Client
 	channel      string
 	messagesChan chan<- chatmodels.ChatMessage
@@ -19,7 +20,8 @@ type TwitchProvider struct {
 
 func NewTwitchProvider() *TwitchProvider {
 	return &TwitchProvider{
-		Name: "Twitch",
+		Name:      "Twitch",
+		ShortName: "Tw",
 	}
 }
 
@@ -55,10 +57,11 @@ func (t *TwitchProvider) Listen(messages chan<- chatmodels.ChatMessage) error {
 	// Handle incoming messages
 	t.client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		t.messagesChan <- chatmodels.ChatMessage{
-			Provider:   t.GetName(),
-			Timestamp:  message.Time,
-			Content:    message.Message,
-			AuthorName: message.User.DisplayName,
+			Provider:          t.GetName(),
+			ProviderShortName: t.GetShortName(),
+			Timestamp:         message.Time,
+			Content:           message.Message,
+			AuthorName:        message.User.DisplayName,
 		}
 	})
 
@@ -80,4 +83,8 @@ func (t *TwitchProvider) Listen(messages chan<- chatmodels.ChatMessage) error {
 
 func (t *TwitchProvider) GetName() string {
 	return t.Name
+}
+
+func (t *TwitchProvider) GetShortName() string {
+	return t.ShortName
 }

@@ -14,6 +14,7 @@ type ChatProvider interface {
 	Disconnect() error
 	Listen(messages chan<- chatmodels.ChatMessage) error
 	GetName() string
+	GetShortName() string
 }
 
 type ChatProviderType int
